@@ -1,0 +1,78 @@
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.swp
+*.swo
+*.tmp
+*.bak
+*.old
+*.orig
+*.log
+
+# VS Code / JetBrains
+.vscode/
+.idea/
+*.iml
+
+# --- Node / Next.js (brain-dump-frontend) ---
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Env / local config (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Package manager artifacts
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python / FastAPI (backend) ---
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# --- Local data (do NOT commit user content) ---
+# Keep the data directories in git, but ignore everything inside them.
+backend/data/*
+!backend/data/.gitkeep
+backend/data/uploads/*
+!backend/data/uploads/.gitkeep
+
+# SQLite database files (extra safety)
+*.sqlite3
+*.sqlite3-*
+*.db
+*.db-*
+
+# --- Misc ---
+*.zip
+*.tar
+*.tar.gz
+*.7z
+*.rar
+
