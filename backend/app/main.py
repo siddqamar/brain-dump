@@ -24,6 +24,36 @@ from .settings import get_settings
 app = FastAPI(title="Brain Dump Local API", version="0.1.0")
 settings = get_settings()
 
+SUPPORTED_UPLOAD_TYPES = {
+    ".pdf",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".webp",
+    ".txt",
+    ".md",
+    ".json",
+    ".csv",
+    ".py",
+    ".js",
+    ".ts",
+    ".tsx",
+    ".jsx",
+    ".html",
+    ".css",
+    ".sql",
+    ".mp3",
+    ".wav",
+    ".m4a",
+    ".ogg",
+    ".flac",
+    ".aac",
+    ".mp4",
+    ".mov",
+    ".mkv",
+    ".webm",
+}
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -51,7 +81,7 @@ def status(conn=Depends(get_db)) -> dict:
     db_size = settings.database_path.stat().st_size if settings.database_path.exists() else 0
     upload_size = sum(path.stat().st_size for path in settings.upload_dir.rglob("*") if path.is_file())
     return {
-        "localAIActive": bool(settings.llama_base_url),
+        "localAIActive": bool(settings.gemini_api_key or settings.llama_base_url),
         "processingQueue": 0,
         "totalMemories": total_memories,
         "totalConnections": total_connections,
@@ -144,7 +174,7 @@ def capture_file(
     if not file.filename:
         raise HTTPException(status_code=400, detail="Missing filename")
     suffix = Path(file.filename).suffix.lower()
-    if suffix not in {".pdf", ".png", ".jpg", ".jpeg", ".webp", ".txt", ".md"}:
+    if suffix not in SUPPORTED_UPLOAD_TYPES:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
     destination = settings.upload_dir / f"{new_id('upload')}{suffix}"

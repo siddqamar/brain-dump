@@ -11,11 +11,17 @@ class Settings(BaseSettings):
     database_path: Path = Path("data/brain_dump.sqlite3")
     upload_dir: Path = Path("data/uploads")
     embedding_dimensions: int = 384
+    embedding_provider: str = "local"
+    gemini_api_key: str | None = None
+    gemini_model: str = "gemma-4-26b-a4b-it"
+    gemini_embedding_model: str = "text-embedding-004"
+    whisper_model: str = "base"
+    whisper_language: str | None = None
     llama_base_url: str | None = None
     llama_model: str = "local-model"
     max_file_mb: int = 25
 
-    model_config = SettingsConfigDict(env_file=".env", env_prefix="BRAIN_")
+    model_config = SettingsConfigDict(env_file="app/.env", env_prefix="BRAIN_")
 
     @property
     def cors_origin_list(self) -> list[str]:
