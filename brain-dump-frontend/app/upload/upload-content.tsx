@@ -59,7 +59,7 @@ const captureTypes: {
     id: 'file',
     label: 'File Upload',
     icon: FileText,
-    description: 'PDF, image, or screenshot',
+    description: 'Docs, images, audio, and video',
     placeholder: '',
   },
 ];
@@ -240,7 +240,7 @@ export function UploadContent() {
                         type="file"
                         className="hidden"
                         multiple
-                        accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md"
+                        accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.md,.json,.csv,.py,.js,.ts,.tsx,.jsx,.html,.css,.sql,.mp3,.wav,.m4a,.ogg,.flac,.aac,.mp4,.mov,.mkv,.webm"
                         onChange={(event) => {
                           Array.from(event.target.files || []).forEach((file) => processFile(file));
                           event.currentTarget.value = '';
@@ -249,7 +249,7 @@ export function UploadContent() {
                     </label>
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Supports PDF, PNG, JPG, WEBP (max 10MB)
+                    Supports docs, images, audio, video (max 10MB)
                   </p>
                 </div>
               ) : activeType === 'text' ? (

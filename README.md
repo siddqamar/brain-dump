@@ -1,14 +1,51 @@
 # Brain Dump
 
-Local-first second brain MVP for the hackathon: capture text, URLs, PDFs, and images; extract text; build local embeddings; discover connections; and search semantically.
+Local-first second brain MVP for the hackathon: capture text, URLs, PDFs, images, project files, audio, and video; extract/transcribe content; build embeddings; discover connections; and search semantically.
+
+## Problem Statement
+
+Knowledge workers collect information across many disconnected formats and tools: links, notes, PDFs, screenshots, audio, video, and project files. Traditional folder search and keyword search fail when users do not remember exact filenames, terms, or where content was stored.
+
+Brain Dump solves this by turning mixed-format personal data into a unified, searchable memory layer. It extracts and transcribes content, builds embeddings, and returns the most relevant results through semantic search, so users can retrieve context and connections from their full knowledge base with a single query.
+
+## Product Slides
+
+### Slide 1
+<a id="slide-1"></a>
+
+![Slide 1](media/ss1.PNG)
+
+[< Previous](#slide-4) | [Next >](#slide-2)
+
+### Slide 2
+<a id="slide-2"></a>
+
+![Slide 2](media/ss2.PNG)
+
+[< Previous](#slide-1) | [Next >](#slide-3)
+
+### Slide 3
+<a id="slide-3"></a>
+
+![Slide 3](media/ss3.PNG)
+
+[< Previous](#slide-2) | [Next >](#slide-4)
+
+### Slide 4
+<a id="slide-4"></a>
+
+![Slide 4](media/ss4.PNG)
+
+[< Previous](#slide-3) | [Next >](#slide-1)
 
 ## MVP Architecture
 
 - Frontend: Next/React app in `brain-dump-frontend`
 - Backend: FastAPI app in `backend`
 - Storage: SQLite in `backend/data` by default
-- Embeddings: deterministic local hashed vectors for zero-setup MVP search
-- Optional local LLM: llama.cpp OpenAI-compatible chat endpoint for better summaries
+- Embeddings: local deterministic embeddings by default, optional Google embedding API
+- Summaries: `gemma-4-26b-a4b-it` via Google AI Studio API
+- Transcription: Whisper for audio/video
 
 Postgres + pgvector is still the recommended production direction. For the hackathon, SQLite keeps the demo lightweight for Windows users and preserves an easy migration path because the API contract is separate from the storage implementation.
 
@@ -43,16 +80,11 @@ npm.cmd run dev
 
 The frontend reads `NEXT_PUBLIC_API_URL` and defaults to `http://127.0.0.1:8765`.
 
-## Optional llama.cpp Summaries
+## Gemma 4 (`gemma-4-26b-a4b-it`) / Whisper Config
 
-Create `backend\.env`:
+Create `backend\app\.env` by copying values from `backend\app\.env.example`.
 
-```env
-BRAIN_LLAMA_BASE_URL=http://127.0.0.1:8080
-BRAIN_LLAMA_MODEL=lfm-local
-```
-
-The backend still works without this. It falls back to a local extractive summary.
+If Whisper is used, install `ffmpeg` on Windows. Without external providers, the backend falls back gracefully.
 
 ## Hackathon Demo Flow
 

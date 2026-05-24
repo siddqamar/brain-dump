@@ -18,16 +18,29 @@ uvicorn app.main:app --reload --port 8765
 
 The API runs at `http://127.0.0.1:8765`.
 
-## Optional llama.cpp summarization
+## Gemma + Whisper config
 
-If your llama.cpp server exposes an OpenAI-compatible chat endpoint, create `backend/.env`:
+Create `backend/app/.env`:
 
 ```env
-BRAIN_LLAMA_BASE_URL=http://127.0.0.1:8080
-BRAIN_LLAMA_MODEL=lfm-local
+BRAIN_GEMINI_API_KEY=your_api_key_here
+BRAIN_GEMINI_MODEL=gemma-4-26b-a4b-it
+BRAIN_EMBEDDING_PROVIDER=local
+BRAIN_GEMINI_EMBEDDING_MODEL=text-embedding-004
+BRAIN_WHISPER_MODEL=base
+BRAIN_WHISPER_LANGUAGE=
+BRAIN_TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
+BRAIN_SEARCH_MIN_SCORE=0.18
 ```
 
-Without this, summaries use a fast local extractive fallback.
+How it works:
+- Summaries use Gemma through Google AI Studio API when `BRAIN_GEMINI_API_KEY` is set.
+- Embeddings default to local deterministic vectors for offline MVP speed.
+- Set `BRAIN_EMBEDDING_PROVIDER=gemini` to use Google embeddings.
+- Audio/video uploads use Whisper transcription (requires ffmpeg on the machine).
+- Image OCR uses Tesseract via `BRAIN_TESSERACT_CMD` (default points to standard Windows install path).
+- `BRAIN_SEARCH_MIN_SCORE` controls result strictness (higher = fewer, cleaner matches).
+- If providers are unavailable, the backend falls back gracefully so ingestion still works.
 
 ## Important endpoints
 

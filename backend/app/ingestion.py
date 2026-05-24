@@ -4,12 +4,16 @@ import uuid
 from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
+from typing import Any
 from urllib.request import Request, urlopen
 
 import requests
+import google.generativeai as genai
 
-from .embeddings import cosine, dumps, embed_text, loads, tokenize
+from .embeddings import cosine, dumps, embed_query, embed_text, loads, tokenize
 from .settings import get_settings
+
+_WHISPER_MODELS: dict[str, Any] = {}
 
 
 class ReadableHTMLParser(HTMLParser):
@@ -82,7 +86,9 @@ def chunk_text(text: str, chunk_size: int = 900, overlap: int = 160) -> list[str
             if boundary > start + chunk_size // 2:
                 end = boundary + 1
         chunks.append(clean[start:end].strip())
-        start = max(end - overlap, end)
+        if end >= len(clean):
+            break
+        start = max(0, end - overlap)
     return chunks
 
 
@@ -99,30 +105,50 @@ def summarize(content: str) -> str:
     if not text:
         return "No readable text was extracted."
 
-    if settings.llama_base_url:
+    if settings.gemini_api_key:
         try:
-            response = requests.post(
-                f"{settings.llama_base_url.rstrip('/')}/v1/chat/completions",
-                json={
-                    "model": settings.llama_model,
-                    "messages": [
-                        {
-                            "role": "system",
-                            "content": "Summarize this memory in two concise sentences for a local second brain.",
-                        },
-                        {"role": "user", "content": text[:6000]},
-                    ],
-                    "temperature": 0.2,
-                    "max_tokens": 180,
-                },
-                timeout=30,
+            # Google AI Studio SDK best-practice flow:
+            # genai.configure(api_key=...)
+            # model = genai.GenerativeModel("gemma-4-26b-a4b-it")
+            # response = model.generate_content(...)
+            genai.configure(api_key=settings.gemini_api_key)
+            model = genai.GenerativeModel(settings.gemini_model)
+            response = model.generate_content(
+                "Summarize this memory in two concise sentences for a second brain.\n\n"
+                f"{text[:6000]}",
+                generation_config={"temperature": 0.2, "max_output_tokens": 180},
             )
-            response.raise_for_status()
-            content_text = response.json()["choices"][0]["message"]["content"].strip()
+            content_text = (response.text or "").strip()
             if content_text:
                 return content_text
         except Exception:
             pass
+
+    # Local model path intentionally disabled while Gemma API is active.
+    # if settings.llama_base_url:
+    #     try:
+    #         response = requests.post(
+    #             f"{settings.llama_base_url.rstrip('/')}/v1/chat/completions",
+    #             json={
+    #                 "model": settings.llama_model,
+    #                 "messages": [
+    #                     {
+    #                         "role": "system",
+    #                         "content": "Summarize this memory in two concise sentences for a local second brain.",
+    #                     },
+    #                     {"role": "user", "content": text[:6000]},
+    #                 ],
+    #                 "temperature": 0.2,
+    #                 "max_tokens": 180,
+    #             },
+    #             timeout=30,
+    #         )
+    #         response.raise_for_status()
+    #         content_text = response.json()["choices"][0]["message"]["content"].strip()
+    #         if content_text:
+    #             return content_text
+    #     except Exception:
+    #         pass
 
     sentences = re.split(r"(?<=[.!?])\s+", text)
     return " ".join(sentences[:2])[:500]
@@ -138,6 +164,33 @@ def extract_url(url: str) -> tuple[str, str]:
     parser.feed(html)
     title = parser.title or url
     return title[:140], parser.readable_text[:80_000]
+
+
+def transcribe_with_whisper(path: Path) -> str:
+    settings = get_settings()
+    try:
+        import whisper
+
+        model_name = settings.whisper_model or "base"
+        model = _WHISPER_MODELS.get(model_name)
+        if model is None:
+            model = whisper.load_model(model_name)
+            _WHISPER_MODELS[model_name] = model
+
+        transcribe_args: dict[str, Any] = {}
+        if settings.whisper_language:
+            transcribe_args["language"] = settings.whisper_language
+
+        result = model.transcribe(str(path), **transcribe_args)
+        text = (result.get("text") or "").strip()
+        if text:
+            return text
+        return "Transcription completed, but no speech was detected."
+    except Exception as exc:
+        return (
+            f"Whisper transcription is unavailable for {path.name}. "
+            f"Install/configure whisper + ffmpeg. Details: {exc}"
+        )
 
 
 def extract_file(path: Path, original_name: str) -> tuple[str, str, str]:
@@ -157,10 +210,23 @@ def extract_file(path: Path, original_name: str) -> tuple[str, str, str]:
             import pytesseract
             from PIL import Image
 
+            settings = get_settings()
+            configured_tesseract = Path(settings.tesseract_cmd)
+            if configured_tesseract.exists():
+                pytesseract.pytesseract.tesseract_cmd = str(configured_tesseract)
+
             text = pytesseract.image_to_string(Image.open(path))
             return "screenshot", Path(original_name).stem, text
         except Exception as exc:
             return "screenshot", Path(original_name).stem, f"OCR is not configured yet for this image. Saved file: {original_name}. Details: {exc}"
+
+    if suffix in {".mp3", ".wav", ".m4a", ".ogg", ".flac", ".aac"}:
+        text = transcribe_with_whisper(path)
+        return "text", Path(original_name).stem, text
+
+    if suffix in {".mp4", ".mov", ".mkv", ".webm"}:
+        text = transcribe_with_whisper(path)
+        return "youtube", Path(original_name).stem, text
 
     return "text", Path(original_name).stem, path.read_text(encoding="utf-8", errors="ignore")
 
@@ -304,7 +370,8 @@ def discover_connections(conn, memory_id: str, threshold: float = 0.24, limit: i
 
 
 def search(conn, query: str, tag: str | None = None, limit: int = 20) -> list[dict]:
-    query_embedding = embed_text(query)
+    settings = get_settings()
+    query_embedding = embed_query(query)
     query_tokens = set(tokenize(query))
     memories = conn.execute("SELECT * FROM memories WHERE status = 'indexed'").fetchall()
     scored: dict[str, tuple[float, set[str]]] = {}
@@ -326,7 +393,7 @@ def search(conn, query: str, tag: str | None = None, limit: int = 20) -> list[di
                 matched = overlap
         if query.lower() in memory["title"].lower():
             best_score += 0.2
-        if best_score > 0:
+        if best_score >= settings.search_min_score:
             scored[memory["id"]] = (min(best_score, 1.0), matched)
 
     results = []
