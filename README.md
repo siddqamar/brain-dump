@@ -10,25 +10,7 @@ Brain Dump solves this by turning mixed-format personal data into a unified, sea
 
 ## Product Slides
 
-### Slide 1
-![Slide 1](media/ss1.PNG)
-
-[Next ▶](#slide-2)
-
-### Slide 2
-![Slide 2](media/ss2.PNG)
-
-[◀ Previous](#slide-1) | [Next ▶](#slide-3)
-
-### Slide 3
-![Slide 3](media/ss3.PNG)
-
-[◀ Previous](#slide-2) | [Next ▶](#slide-4)
-
-### Slide 4
-![Slide 4](media/ss4.PNG)
-
-[◀ Previous](#slide-3) | [Back to Top](#brain-dump)
+[▶ Start Slideshow](media/slide-1.md)
 
 ## MVP Architecture
 
