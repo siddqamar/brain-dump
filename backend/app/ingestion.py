@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 import requests
 import google.generativeai as genai
 
-from .embeddings import cosine, dumps, embed_text, loads, tokenize
+from .embeddings import cosine, dumps, embed_query, embed_text, loads, tokenize
 from .settings import get_settings
 
 _WHISPER_MODELS: dict[str, Any] = {}
@@ -86,7 +86,9 @@ def chunk_text(text: str, chunk_size: int = 900, overlap: int = 160) -> list[str
             if boundary > start + chunk_size // 2:
                 end = boundary + 1
         chunks.append(clean[start:end].strip())
-        start = max(end - overlap, end)
+        if end >= len(clean):
+            break
+        start = max(0, end - overlap)
     return chunks
 
 
@@ -207,6 +209,11 @@ def extract_file(path: Path, original_name: str) -> tuple[str, str, str]:
         try:
             import pytesseract
             from PIL import Image
+
+            settings = get_settings()
+            configured_tesseract = Path(settings.tesseract_cmd)
+            if configured_tesseract.exists():
+                pytesseract.pytesseract.tesseract_cmd = str(configured_tesseract)
 
             text = pytesseract.image_to_string(Image.open(path))
             return "screenshot", Path(original_name).stem, text
@@ -363,7 +370,8 @@ def discover_connections(conn, memory_id: str, threshold: float = 0.24, limit: i
 
 
 def search(conn, query: str, tag: str | None = None, limit: int = 20) -> list[dict]:
-    query_embedding = embed_text(query)
+    settings = get_settings()
+    query_embedding = embed_query(query)
     query_tokens = set(tokenize(query))
     memories = conn.execute("SELECT * FROM memories WHERE status = 'indexed'").fetchall()
     scored: dict[str, tuple[float, set[str]]] = {}
@@ -385,7 +393,7 @@ def search(conn, query: str, tag: str | None = None, limit: int = 20) -> list[di
                 matched = overlap
         if query.lower() in memory["title"].lower():
             best_score += 0.2
-        if best_score > 0:
+        if best_score >= settings.search_min_score:
             scored[memory["id"]] = (min(best_score, 1.0), matched)
 
     results = []

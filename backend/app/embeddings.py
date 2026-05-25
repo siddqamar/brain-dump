@@ -51,6 +51,25 @@ def _embed_gemini(text: str) -> list[float] | None:
     return None
 
 
+def _embed_gemini_query(text: str) -> list[float] | None:
+    settings = get_settings()
+    if not settings.gemini_api_key:
+        return None
+    try:
+        genai.configure(api_key=settings.gemini_api_key)
+        response = genai.embed_content(
+            model=f"models/{settings.gemini_embedding_model}",
+            content=text[:8000],
+            task_type="retrieval_query",
+        )
+        values = response.get("embedding", {}).get("values", [])
+        if values:
+            return [float(value) for value in values]
+    except Exception:
+        return None
+    return None
+
+
 def embed_text(text: str) -> list[float]:
     settings = get_settings()
     if settings.embedding_provider.lower() == "gemini":
@@ -60,7 +79,18 @@ def embed_text(text: str) -> list[float]:
     return _embed_local(text)
 
 
+def embed_query(text: str) -> list[float]:
+    settings = get_settings()
+    if settings.embedding_provider.lower() == "gemini":
+        vector = _embed_gemini_query(text)
+        if vector:
+            return vector
+    return _embed_local(text)
+
+
 def cosine(left: list[float], right: list[float]) -> float:
+    if len(left) != len(right):
+        return 0.0
     return sum(a * b for a, b in zip(left, right))
 
 

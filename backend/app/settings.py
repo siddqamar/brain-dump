@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     gemini_embedding_model: str = "text-embedding-004"
     whisper_model: str = "base"
     whisper_language: str | None = None
+    tesseract_cmd: str = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+    search_min_score: float = 0.18
     llama_base_url: str | None = None
     llama_model: str = "local-model"
     max_file_mb: int = 25

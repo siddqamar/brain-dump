@@ -29,6 +29,8 @@ BRAIN_EMBEDDING_PROVIDER=local
 BRAIN_GEMINI_EMBEDDING_MODEL=text-embedding-004
 BRAIN_WHISPER_MODEL=base
 BRAIN_WHISPER_LANGUAGE=
+BRAIN_TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
+BRAIN_SEARCH_MIN_SCORE=0.18
 ```
 
 How it works:
@@ -36,6 +38,8 @@ How it works:
 - Embeddings default to local deterministic vectors for offline MVP speed.
 - Set `BRAIN_EMBEDDING_PROVIDER=gemini` to use Google embeddings.
 - Audio/video uploads use Whisper transcription (requires ffmpeg on the machine).
+- Image OCR uses Tesseract via `BRAIN_TESSERACT_CMD` (default points to standard Windows install path).
+- `BRAIN_SEARCH_MIN_SCORE` controls result strictness (higher = fewer, cleaner matches).
 - If providers are unavailable, the backend falls back gracefully so ingestion still works.
 
 ## Important endpoints
