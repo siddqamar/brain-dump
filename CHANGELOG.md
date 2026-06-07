@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `search_min_score` backend setting to filter low-confidence results.
 - Added configurable `BRAIN_TESSERACT_CMD` setting for image OCR runtime path resolution.
 - Added root `CHANGELOG.md` for standardized release notes.
+- Added `backend/pyproject.toml` so backend dependencies are managed from a modern Python project manifest.
+- Added `backend/.python-version` to keep the `uv` workflow aligned with the current Python target.
 
 ### Changed
 - Switched summary generation path to Gemma API using `google.generativeai`.
@@ -21,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated frontend upload accept list and copy to reflect broader file support.
 - Updated backend and root documentation for `backend/app/.env` configuration.
 - Installed Tesseract OCR engine on Windows host (`tesseract v5.4.0.20240606`) and aligned backend docs/env examples.
+- Switched backend startup/docs from `requirements.txt` + manual `pip` installs to `uv sync` / `uv run`.
 
 ### Fixed
 - Improved semantic search quality by separating query/document embedding tasks when Gemini embeddings are enabled (`retrieval_query` vs `retrieval_document`).

@@ -1,8 +1,15 @@
 @echo off
 setlocal
 cd /d "%~dp0backend"
-if not exist ".venv\Scripts\python.exe" (
-  python -m venv .venv
+
+where uv >nul 2>nul
+if errorlevel 1 (
+  echo uv is required for the backend environment setup.
+  echo Install it from https://docs.astral.sh/uv/ and rerun this script.
+  exit /b 1
 )
-".venv\Scripts\python.exe" -m pip install -r requirements.txt
-".venv\Scripts\python.exe" -m uvicorn app.main:app --reload --port 8765
+
+call uv sync
+if errorlevel 1 exit /b 1
+
+call uv run uvicorn app.main:app --reload --port 8765

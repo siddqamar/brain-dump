@@ -1,0 +1,26 @@
+[project]
+name = "brain-dump-backend"
+version = "0.1.0"
+description = "Local-first FastAPI backend for the Brain Dump MVP."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4==4.12.3",
+    "fastapi==0.115.6",
+    "google-generativeai==0.8.3",
+    "openai-whisper",
+    "pillow==11.0.0",
+    "pydantic-settings==2.7.1",
+    "pypdf==5.1.0",
+    "pytesseract==0.3.13",
+    "python-multipart==0.0.20",
+    "requests==2.32.3",
+    "uvicorn[standard]==0.34.0",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]

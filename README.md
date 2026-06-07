@@ -33,10 +33,11 @@ Or manually:
 
 ```cmd
 cd backend
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8765
+uv sync
+uv run uvicorn app.main:app --reload --port 8765
 ```
+
+Backend dependencies now come from `backend/pyproject.toml`. `backend/requirements.txt` is no longer the active setup path and can be removed after your migration is complete.
 
 ## Start Frontend
 
