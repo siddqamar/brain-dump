@@ -10,13 +10,13 @@ Postgres + pgvector is the right long-term path, but the MVP needs to be easy on
 
 ```powershell
 cd backend
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8765
+uv sync
+uv run uvicorn app.main:app --reload --port 8765
 ```
 
 The API runs at `http://127.0.0.1:8765`.
+
+The backend now uses `pyproject.toml` as the source of truth for dependencies. `requirements.txt` is kept only as a temporary legacy file during migration.
 
 ## Gemma + Whisper config
 

@@ -68,11 +68,11 @@ backend/data/uploads/*
 *.sqlite3-*
 *.db
 *.db-*
-
+data/
 # --- Misc ---
 *.zip
 *.tar
 *.tar.gz
 *.7z
 *.rar
-
+brain_dump_backend.egg-info/
